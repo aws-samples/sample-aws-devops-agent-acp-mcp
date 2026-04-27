@@ -127,7 +127,7 @@ def _run_auto():
         from aws_devops_agent.acp_server import ACPServer
         server = ACPServer()
         msg = json.loads(first_line.strip())
-        server._handle_message(msg)
+        server.handle_message(msg)
         server.run()
     else:
         try:

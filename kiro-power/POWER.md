@@ -27,7 +27,7 @@ keywords:
 author: "Amazon Web Services"
 version: "1.0.0"
 homepage: "https://docs.aws.amazon.com/devopsagent/latest/userguide/"
-repository: "https://github.com/awslabs/mcp"
+repository: "https://github.com/aws-samples/sample-aws-devops-agent-acp-mcp"
 ---
 
 # AWS DevOps Agent — Kiro Power
@@ -399,4 +399,4 @@ For the full step-by-step guide, see [KIRO_QUICKSTART.md](KIRO_QUICKSTART.md).
 - **Support**: [AWS re:Post — DevOps Agent](https://repost.aws/tags/devops-agent)
 - **License**: [MIT-0](https://opensource.org/license/mit-0)
 - **Privacy**: [AWS Privacy Notice](https://aws.amazon.com/privacy/)
-- **Source**: [GitHub](https://github.com/awslabs/mcp)
+- **Source**: [GitHub](https://github.com/aws-samples/sample-aws-devops-agent-acp-mcp)

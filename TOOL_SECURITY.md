@@ -133,4 +133,4 @@ Do **not** create a public GitHub issue for security vulnerabilities.
 ---
 
 **License**: MIT-0
-**Repository**: https://github.com/awslabs/mcp
+**Repository**: https://github.com/aws-samples/sample-aws-devops-agent-acp-mcp

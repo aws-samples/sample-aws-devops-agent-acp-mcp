@@ -659,7 +659,7 @@ class ACPServer:
         print(f"   Journal poll: {JOURNAL_POLL_INTERVAL}s", file=sys.stderr)
         print("", file=sys.stderr)
 
-    def _handle_message(self, msg: dict):
+    def handle_message(self, msg: dict):
         """Handle a single pre-parsed JSON-RPC message (for auto-detect mode)."""
         method = msg.get("method")
         msg_id = msg.get("id")

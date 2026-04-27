@@ -38,4 +38,4 @@ All notable changes are documented here. Format based on [Keep a Changelog](http
 
 ---
 
-**Full Changelog**: https://github.com/awslabs/mcp
+**Full Changelog**: https://github.com/aws-samples/sample-aws-devops-agent-acp-mcp/commits/main

@@ -47,4 +47,4 @@ Quick reference for choosing the right workflow.
 
 ---
 
-**License**: MIT-0 | **Repository**: https://github.com/awslabs/mcp
+**License**: MIT-0 | **Repository**: https://github.com/aws-samples/sample-aws-devops-agent-acp-mcp

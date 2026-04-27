@@ -25,6 +25,7 @@ Quick start::
 import collections
 import json
 import os
+import shlex
 import subprocess
 import sys
 import threading
@@ -201,12 +202,7 @@ class ACPClient:
             env["DEVOPS_AGENT_USER_ID"] = self._user_id
         env.update(self._extra_env)
 
-        # Handle "python script.py" style paths
-        if " " in server:
-            parts = server.split()
-            cmd = parts
-        else:
-            cmd = [server]
+        cmd = shlex.split(server)
 
         self._proc = subprocess.Popen(
             cmd,
@@ -227,9 +223,7 @@ class ACPClient:
             target=self._stderr_reader, daemon=True, name="acp-stderr")
         self._stderr_thread.start()
 
-        time.sleep(0.3)  # Let server initialize
-
-
+        
         # ACP initialize handshake
         init_result = self._request("initialize", {
             "clientInfo": {"name": "aws-devops-agent-client", "version": "1.0.0"},

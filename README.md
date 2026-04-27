@@ -27,17 +27,8 @@ aws sts get-caller-identity --query Arn --output text | cut -d'/' -f2
 ### 1. Install
 
 ```bash
-pip install aws-devops-agent-acp
-
-# With MCP support (for Claude Code, Cursor, Windsurf):
-pip install 'aws-devops-agent-acp[mcp]'
-```
-
-**Installing from source** (development):
-
-```bash
-git clone https://github.com/awslabs/mcp
-cd mcp/AWSDevOpsAgentACPMCP
+git clone https://github.com/aws-samples/sample-aws-devops-agent-acp-mcp
+cd sample-aws-devops-agent-acp-mcp
 pip install -e '.[mcp]'
 ```
 
@@ -304,14 +295,14 @@ Check your IDE's ACP/MCP configuration points to the correct binary. Run `which 
 Investigations take 5-8 minutes by design (deep analysis). Use chat (`create_chat` + `send_message`) for quick answers.
 
 **"Cannot find aws-devops-agent-acp":**
-Install with `pip install aws-devops-agent-acp` and ensure the binary is on your PATH.
+Install from source (see Quick Start) and ensure the binary is on your PATH.
 
 ## Development
 
 ```bash
 # Clone and install in development mode
-git clone https://github.com/awslabs/mcp
-cd mcp/AWSDevOpsAgentACPMCP
+git clone https://github.com/aws-samples/sample-aws-devops-agent-acp-mcp
+cd sample-aws-devops-agent-acp-mcp
 pip install -e '.[dev,mcp]'
 
 # Run tests
