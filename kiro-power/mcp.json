@@ -1,0 +1,31 @@
+{
+  "mcpServers": {
+    "aws-devops-agent": {
+      "command": "<REPLACE_WITH_BINARY_PATH>",
+      "args": [
+        "mcp"
+      ],
+      "env": {
+        "DEVOPS_AGENT_USER_ID": "<REPLACE_WITH_YOUR_USERNAME>",
+        "DEVOPS_AGENT_REGION": "us-east-1",
+        "DEVOPS_AGENT_AUTO_CREATE_SPACE": "true"
+      },
+      "autoApprove": [
+        "list_services",
+        "get_service",
+        "list_agent_spaces",
+        "get_agent_space",
+        "list_associations",
+        "get_task",
+        "list_tasks",
+        "list_executions",
+        "list_journal_records",
+        "list_recommendations",
+        "get_recommendation",
+        "list_goals",
+        "list_chats",
+        "create_chat"
+      ]
+    }
+  }
+}
