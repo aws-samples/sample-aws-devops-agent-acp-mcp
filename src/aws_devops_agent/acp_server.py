@@ -39,6 +39,7 @@ import getpass
 import json
 import os
 import re
+import logging
 import sys
 import threading
 import time
@@ -96,6 +97,9 @@ class Session:
 # ---------------------------------------------------------------------------
 # ACP Server
 # ---------------------------------------------------------------------------
+logger = logging.getLogger(__name__)
+
+
 class ACPServer:
     """Agent Client Protocol server for AWS DevOps Agent.
 
@@ -250,10 +254,11 @@ class ACPServer:
             return space_id
 
         except Exception as e:
-            self._send_tool_done(tmp_sid, tc_id, "failed", str(e))
+            logger.exception("Failed to find or create AgentSpace")
+            self._send_tool_done(tmp_sid, tc_id, "failed", "Failed to find or create AgentSpace")
             self.error(msg_id, -32603,
-                       f"Failed to find or create AgentSpace: {e}. "
-                       f"Set DEVOPS_AGENT_SPACE_ID manually or check IAM permissions.")
+                       "Failed to find or create AgentSpace. "
+                       "Set DEVOPS_AGENT_SPACE_ID manually or check IAM permissions.")
             return ""
 
     # ── Protocol handlers ─────────────────────────────────────────────────
@@ -315,8 +320,9 @@ class ACPServer:
             self._send_tool_done(session_id, tc_id, "completed",
                                  f"Chat session ready (execution: {session.execution_id})")
         except Exception as e:
-            self._send_tool_done(session_id, tc_id, "failed", str(e))
-            self.error(msg_id, -32603, f"Failed to create chat: {e}")
+            logger.exception("Failed to create chat")
+            self._send_tool_done(session_id, tc_id, "failed", "Failed to create chat")
+            self.error(msg_id, -32603, "Failed to create chat")
             return
 
         self.sessions[session_id] = session
@@ -458,9 +464,10 @@ class ACPServer:
             self._start_journal_poller(session)
 
         except Exception as e:
-            self._send_tool_done(session.session_id, tc_id, "failed", str(e))
+            logger.exception("Could not start investigation")
+            self._send_tool_done(session.session_id, tc_id, "failed", "Could not start investigation")
             self._send_text(session.session_id,
-                            f"⚠️ Could not start investigation: {e}\n\n")
+                            "⚠️ Could not start investigation. Check logs for details.\n\n")
 
     def _start_journal_poller(self, session: Session):
         """Start a background thread that polls journal records and streams updates."""
@@ -498,7 +505,8 @@ class ACPServer:
                 return
 
             terminal_states = {"COMPLETED", "FAILED"}
-            while not session.cancelled:
+            deadline = time.monotonic() + MAX_POLL_TIME_SECONDS
+            while not session.cancelled and time.monotonic() < deadline:
                 try:
                     task_resp = call_raw(
                         get_dp().get_backlog_task,
@@ -553,10 +561,15 @@ class ACPServer:
                         break
 
                 except Exception as e:
-                    print(f"Journal poll error: {e}", file=sys.stderr)
+                    logger.exception("Journal poll error")
 
                 time.sleep(JOURNAL_POLL_INTERVAL)
 
+            if not session.cancelled and time.monotonic() >= deadline:
+                logger.warning("Journal polling timed out after %d seconds for task %s",
+                               MAX_POLL_TIME_SECONDS, session.task_id)
+                self._send_text(session.session_id,
+                                "\n⏰ **Investigation polling timed out** "                                "— the investigation may still be running. "                                "Use chat to check status.\n")
             self._journal_threads.pop(session.session_id, None)
 
         thread = threading.Thread(target=poll_loop, daemon=True,
@@ -622,9 +635,10 @@ class ACPServer:
                                     "_Agent is processing — results will appear shortly._\n")
 
         except Exception as e:
-            self._send_tool_done(session.session_id, tc_id, "failed", str(e))
+            logger.exception("Stream error during chat")
+            self._send_tool_done(session.session_id, tc_id, "failed", "Stream error")
             self._send_text(session.session_id,
-                            f"\n⚠️ Stream error: {e}\n")
+                            "\n⚠️ Stream error. Check logs for details.\n")
 
         if msg_id is not None:
             self._send_turn_end(session.session_id)

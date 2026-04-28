@@ -1,3 +1,4 @@
+import logging
 # Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 # SPDX-License-Identifier: MIT-0
 """Shared utilities — serialization, timestamp conversion, API call wrapper."""
@@ -28,6 +29,8 @@ def epoch_millis_to_iso(obj: Any) -> Any:
     return obj
 
 
+logger = logging.getLogger(__name__)
+
 def call_api(fn: Callable, **kwargs: Any) -> str:
     """Call a boto3 method, return a JSON string. Strips ResponseMetadata."""
     try:
@@ -39,7 +42,8 @@ def call_api(fn: Callable, **kwargs: Any) -> str:
         msg = e.response["Error"]["Message"]
         return json.dumps({"error": code, "message": msg})
     except Exception as e:
-        return json.dumps({"error": type(e).__name__, "message": str(e)})
+        logger.exception("Unexpected error in API call")
+        return json.dumps({"error": "InternalError", "message": "An unexpected error occurred. Check server logs."})
 
 
 def call_raw(fn: Callable, **kwargs: Any) -> dict:

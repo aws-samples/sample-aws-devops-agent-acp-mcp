@@ -1,3 +1,4 @@
+import logging
 # Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 # SPDX-License-Identifier: MIT-0
 """AWS DevOps Agent — MCP Server.
@@ -21,6 +22,8 @@ import json
 from typing import Optional
 
 from mcp.server.fastmcp import FastMCP
+
+logger = logging.getLogger(__name__)
 
 from aws_devops_agent.core import (
     call_api,
@@ -611,7 +614,8 @@ def send_message(
         resp = get_dp().send_message(**kwargs)
         return _process_stream(resp)
     except Exception as e:
-        return json.dumps({"error": type(e).__name__, "message": str(e)})
+        logger.exception("Error in send_message")
+        return json.dumps({"error": "InternalError", "message": "An internal error occurred. Check server logs."})
 
 
 # ===== Entry Point ============================================================

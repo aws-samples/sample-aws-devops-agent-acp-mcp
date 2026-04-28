@@ -75,8 +75,8 @@ class TestCallApi:
     def test_generic_exception(self):
         mock_fn = MagicMock(side_effect=ValueError("bad"))
         result = json.loads(call_api(mock_fn))
-        assert result["error"] == "ValueError"
-        assert result["message"] == "bad"
+        assert result["error"] == "InternalError"
+        assert result["message"] == "An unexpected error occurred. Check server logs."
 
 
 class TestCallRaw:
