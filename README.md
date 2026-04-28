@@ -1,5 +1,7 @@
 # AWS DevOps Agent — Sample ACP Client, ACP Server & MCP Server
 
+[ACP (Agent Client Protocol)](https://agentclientprotocol.com/get-started/introduction) · [MCP (Model Context Protocol)](https://modelcontextprotocol.io/)
+
 A sample implementation of an **ACP client**, **ACP server**, and **MCP server** for the [AWS DevOps Agent](https://docs.aws.amazon.com/devopsagent/latest/userguide/). Use these reference implementations to integrate AI-powered operational intelligence into your IDE or agent — investigate incidents, analyze costs, review architecture, map topology, and generate remediation.
 
 **Version:** 1.0.0 | **License:** MIT-0 | **Status:** Sample / Reference Implementation
