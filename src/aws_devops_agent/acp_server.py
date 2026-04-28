@@ -62,6 +62,7 @@ VERSION = "1.0.0"
 JOURNAL_POLL_INTERVAL = int(os.environ.get("DEVOPS_AGENT_JOURNAL_POLL_SECS", "20"))
 MAX_SESSIONS = int(os.environ.get("DEVOPS_AGENT_MAX_SESSIONS", "50"))
 SESSION_TTL_SECS = int(os.environ.get("DEVOPS_AGENT_SESSION_TTL_SECS", "3600"))
+MAX_POLL_TIME_SECONDS = int(os.environ.get("DEVOPS_AGENT_MAX_POLL_SECS", "1800"))
 
 # Fall back to OS user when DEVOPS_AGENT_USER_ID is not set
 if not config.DEFAULT_USER_ID:
