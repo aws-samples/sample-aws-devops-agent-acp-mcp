@@ -5,6 +5,8 @@ import os
 import sys
 from typing import Optional
 
+import threading
+
 import boto3
 
 # ---------------------------------------------------------------------------
@@ -21,6 +23,7 @@ DEFAULT_USER_ID = os.environ.get("DEVOPS_AGENT_USER_ID", "")
 # Boto3 client (lazy-initialized singleton)
 # ---------------------------------------------------------------------------
 _client = None
+_client_lock = threading.Lock()
 
 
 def get_client():
@@ -41,7 +44,9 @@ def get_client():
     """
     global _client
     if _client is None:
-        _client = boto3.client("devops-agent", region_name=REGION)
+        with _client_lock:
+            if _client is None:  # double-checked locking
+                _client = boto3.client("devops-agent", region_name=REGION)
     return _client
 
 

@@ -64,8 +64,9 @@ MAX_SESSIONS = int(os.environ.get("DEVOPS_AGENT_MAX_SESSIONS", "50"))
 SESSION_TTL_SECS = int(os.environ.get("DEVOPS_AGENT_SESSION_TTL_SECS", "3600"))
 MAX_POLL_TIME_SECONDS = int(os.environ.get("DEVOPS_AGENT_MAX_POLL_SECS", "1800"))
 
-# Fall back to OS user when DEVOPS_AGENT_USER_ID is not set
-if not config.DEFAULT_USER_ID:
+# Fall back to OS user only when running interactively (TTY attached).
+# On shared infra (EC2/containers) require DEVOPS_AGENT_USER_ID explicitly.
+if not config.DEFAULT_USER_ID and sys.stdin.isatty():
     config.DEFAULT_USER_ID = getpass.getuser()
 
 
@@ -92,6 +93,7 @@ class Session:
         self.journal_records_seen: set[str] = set()
         # General
         self.cancelled = False
+        self.failed = False
         self.seen_text_hashes: set = set()  # Dedup chat vs investigation
 
 
@@ -209,25 +211,18 @@ class ACPServer:
         When allow_create is True, creates a new space if none are found.
         Returns the agentSpaceId, or empty string on failure.
         """
-        tc_id = str(uuid.uuid4())
-        tmp_sid = str(uuid.uuid4())
 
-        self._send_tool_start(tmp_sid, tc_id, "setup_agent_space",
-                              "Setting up DevOps Agent — looking for AgentSpace…")
         try:
             resp = call_raw(get_cp().list_agent_spaces, maxResults=5)
             spaces = resp.get("agentSpaces", [])
             if spaces:
                 space_id = spaces[0].get("agentSpaceId", "")
                 name = spaces[0].get("name", "")
-                self._send_tool_done(tmp_sid, tc_id, "completed",
-                                     f"Found existing AgentSpace: {name} ({space_id})")
+                print(f"   Found existing AgentSpace: {name} ({space_id})", file=sys.stderr)
                 print(f"   Auto-selected AgentSpace: {space_id} ({name})", file=sys.stderr)
                 return space_id
 
             if not allow_create:
-                self._send_tool_done(tmp_sid, tc_id, "completed",
-                                     "No AgentSpace found.")
                 self.error(msg_id, -32602,
                            "No AgentSpace found. To create one, either: "
                            "(1) retry session/new with {\"autoCreateSpace\": true}, "
@@ -235,12 +230,8 @@ class ACPServer:
                            "(3) set DEVOPS_AGENT_SPACE_ID to an existing space ID.")
                 return ""
 
-            self._send_tool_done(tmp_sid, tc_id, "completed",
-                                 "No AgentSpace found — creating one…")
+            print("   No AgentSpace found — creating one…", file=sys.stderr)
 
-            tc_id2 = str(uuid.uuid4())
-            self._send_tool_start(tmp_sid, tc_id2, "create_agent_space",
-                                  "Creating new AgentSpace…", kind="write")
 
             user = config.DEFAULT_USER_ID
             region = config.REGION
@@ -249,14 +240,12 @@ class ACPServer:
                 name=f"acp-{user}-{region}",
             )
             space_id = create_resp.get("agentSpaceId", "")
-            self._send_tool_done(tmp_sid, tc_id2, "completed",
-                                 f"Created AgentSpace: {space_id}")
+            print(f"   Created AgentSpace: {space_id}", file=sys.stderr)
             print(f"   Auto-created AgentSpace: {space_id}", file=sys.stderr)
             return space_id
 
         except Exception as e:
             logger.exception("Failed to find or create AgentSpace")
-            self._send_tool_done(tmp_sid, tc_id, "failed", "Failed to find or create AgentSpace")
             self.error(msg_id, -32603,
                        "Failed to find or create AgentSpace. "
                        "Set DEVOPS_AGENT_SPACE_ID manually or check IAM permissions.")
@@ -307,10 +296,6 @@ class ACPServer:
         session = Session(session_id)
         session.agent_space_id = space_id
 
-        tc_id = str(uuid.uuid4())
-        self._send_tool_start(session_id, tc_id, "create_chat",
-                              "Creating chat session with DevOps Agent…",
-                              params={"agentSpaceId": session.agent_space_id})
         try:
             resp = call_raw(
                 get_dp().create_chat,
@@ -318,8 +303,7 @@ class ACPServer:
                 userId=config.DEFAULT_USER_ID,
             )
             session.execution_id = resp.get("executionId")
-            self._send_tool_done(session_id, tc_id, "completed",
-                                 f"Chat session ready (execution: {session.execution_id})")
+            pass  # response sent after try/except
         except Exception as e:
             logger.exception("Failed to create chat")
             self._send_tool_done(session_id, tc_id, "failed", "Failed to create chat")
@@ -466,6 +450,7 @@ class ACPServer:
 
         except Exception as e:
             logger.exception("Could not start investigation")
+            session.failed = True
             self._send_tool_done(session.session_id, tc_id, "failed", "Could not start investigation")
             self._send_text(session.session_id,
                             "⚠️ Could not start investigation. Check logs for details.\n\n")
@@ -570,7 +555,9 @@ class ACPServer:
                 logger.warning("Journal polling timed out after %d seconds for task %s",
                                MAX_POLL_TIME_SECONDS, session.task_id)
                 self._send_text(session.session_id,
-                                "\n⏰ **Investigation polling timed out** "                                "— the investigation may still be running. "                                "Use chat to check status.\n")
+                                "\n⏰ **Investigation polling timed out** "
+                                "— the investigation may still be running. "
+                                "Use chat to check status.\n")
             self._journal_threads.pop(session.session_id, None)
 
         thread = threading.Thread(target=poll_loop, daemon=True,
@@ -637,6 +624,7 @@ class ACPServer:
 
         except Exception as e:
             logger.exception("Stream error during chat")
+            session.failed = True
             self._send_tool_done(session.session_id, tc_id, "failed", "Stream error")
             self._send_text(session.session_id,
                             "\n⚠️ Stream error. Check logs for details.\n")

@@ -534,8 +534,8 @@ class ACPClient:
                     event = self._response_events.pop(msg_id, None)
                     if event:
                         event.set()
-        except (OSError, ValueError):
-            pass  # Server process closed stdout
+        except (OSError, ValueError, ACPError):
+            pass  # Server process closed stdout or write failed
 
 
     # -- Event parsing --------------------------------------------------------
