@@ -303,10 +303,8 @@ class ACPServer:
                 userId=config.DEFAULT_USER_ID,
             )
             session.execution_id = resp.get("executionId")
-            pass  # response sent after try/except
         except Exception as e:
             logger.exception("Failed to create chat")
-            self._send_tool_done(session_id, tc_id, "failed", "Failed to create chat")
             self.error(msg_id, -32603, "Failed to create chat")
             return
 
@@ -481,7 +479,7 @@ class ACPServer:
                     if status in ("COMPLETED", "FAILED"):
                         break
                 except Exception as e:
-                    print(f"Journal poll: get_task failed: {e}", file=sys.stderr)
+                    logger.exception("Journal poll: get_task failed")
                 time.sleep(10)
 
             if not execution_id:

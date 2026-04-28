@@ -472,7 +472,7 @@ class ACPClient:
             self._proc.stdin.write(line)
             self._proc.stdin.flush()
         except (BrokenPipeError, OSError) as e:
-            raise ACPError(f"Failed to write to server: {e}")
+            raise ACPError("Failed to write to server") from e
 
     def _request(self, method: str, params: Dict, timeout: float = 60) -> Dict:
         """Send a JSON-RPC request and wait for the response."""

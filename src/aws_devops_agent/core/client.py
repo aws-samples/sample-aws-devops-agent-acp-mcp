@@ -5,6 +5,7 @@ import os
 import sys
 from typing import Optional
 
+import logging
 import threading
 
 import boto3
@@ -22,6 +23,8 @@ DEFAULT_USER_ID = os.environ.get("DEVOPS_AGENT_USER_ID", "")
 # ---------------------------------------------------------------------------
 # Boto3 client (lazy-initialized singleton)
 # ---------------------------------------------------------------------------
+logger = logging.getLogger(__name__)
+
 _client = None
 _client_lock = threading.Lock()
 
@@ -82,7 +85,7 @@ def resolve_agent_space(agent_space_id: Optional[str] = None) -> str:
             DEFAULT_AGENT_SPACE_ID = spaces[0]["agentSpaceId"]
             return DEFAULT_AGENT_SPACE_ID
     except Exception as e:
-        print(f"Auto-discover AgentSpace failed: {e}", file=sys.stderr)
+        logger.exception("Auto-discover AgentSpace failed")
 
     # Only create if explicitly opted in — avoids creating resources in wrong accounts
     if AUTO_CREATE_AGENT_SPACE:
@@ -93,7 +96,7 @@ def resolve_agent_space(agent_space_id: Optional[str] = None) -> str:
             DEFAULT_AGENT_SPACE_ID = create_resp.get("agentSpaceId", "")
             return DEFAULT_AGENT_SPACE_ID
         except Exception as e:
-            print(f"Auto-create AgentSpace failed: {e}", file=sys.stderr)
+            logger.exception("Auto-create AgentSpace failed")
 
     raise ValueError(
         "agent_space_id is required. Pass it explicitly, set the "
