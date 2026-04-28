@@ -2,6 +2,11 @@
 
 [ACP (Agent Client Protocol)](https://agentclientprotocol.com/get-started/introduction) · [MCP (Model Context Protocol)](https://modelcontextprotocol.io/)
 
+[![License: MIT-0](https://img.shields.io/badge/License-MIT--0-blue.svg)](LICENSE.txt)
+![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)
+![AWS](https://img.shields.io/badge/AWS-DevOps%20Agent-FF9900?logo=amazonaws&logoColor=white)
+![Status](https://img.shields.io/badge/Status-Reference%20Implementation-0A7B83)
+
 A sample implementation of an **ACP client**, **ACP server**, and **MCP server** for the [AWS DevOps Agent](https://docs.aws.amazon.com/devopsagent/latest/userguide/). Use these reference implementations to integrate AI-powered operational intelligence into your IDE or agent — investigate incidents, analyze costs, review architecture, map topology, and generate remediation.
 
 **Version:** 1.0.0 | **License:** MIT-0 | **Status:** Sample / Reference Implementation
@@ -11,6 +16,29 @@ A sample implementation of an **ACP client**, **ACP server**, and **MCP server**
 > ⚠️ **Disclaimer:** This software is provided as-is for development and evaluation purposes. Users should thoroughly test and validate it in their own environments before deploying to production. Review IAM permissions, network configuration, and security controls to ensure they meet your organization's requirements.
 
 > 🔒 **Security:** Streaming prompt/response interaction is secured with allowlist enforcement, argument validation, and configurable approval gates. See [TOOL_SECURITY.md](TOOL_SECURITY.md) for the full security model.
+
+## Table of Contents
+
+- [At a Glance](#at-a-glance)
+- [Prerequisites](#prerequisites)
+- [Quick Start](#quick-start)
+- [CLI Modes](#cli-modes)
+- [ACP Client SDK](#acp-client-sdk)
+- [MCP Tools (19 tools)](#mcp-tools-19-tools)
+- [Workflow Patterns](#workflow-patterns)
+- [Environment Variables](#environment-variables)
+- [Supported Regions](#supported-regions)
+- [Troubleshooting](#troubleshooting)
+- [Development](#development)
+- [License](#license)
+
+## At a Glance
+
+- **Purpose:** Integrate AWS DevOps Agent capabilities into ACP- and MCP-compatible IDEs and agents.
+- **Protocols:** ACP (Zed, JetBrains, Kiro) and MCP (Claude Code, Cursor, Windsurf).
+- **Included components:** `acp_server.py`, `acp_client.py` (SDK), `mcp_server.py`, shared `core/` utilities.
+- **Primary use cases:** incident investigation, architecture and topology analysis, cost insights, remediation generation.
+- **Design goal:** secure, reference-quality implementation you can adapt to production standards.
 
 ## Prerequisites
 
@@ -233,35 +261,34 @@ send_message(executionId, "List all runbooks and their AWS services")
 
 Run both simultaneously — chat for instant triage, investigation for deep root cause:
 
-```
-┌─ Investigation (background, 5-8 min) ──────────────────┐
-│  create_investigation → agent explores autonomously     │
-│  ↓ journal records stream progress in real-time         │
-├─ Chat (foreground, instant) ─────────────────────────────┤
-│  create_chat → send_message for instant triage           │
-├─ Results ───────────────────────────────────────────────┤
-│  Investigation completes → root cause + recommendations │
-└─────────────────────────────────────────────────────────┘
+```text
++----------------------------------------------------------+
+| Investigation (background, 5-8 min)                      |
+| create_investigation -> agent explores autonomously      |
+| journal records stream progress in real-time             |
++----------------------------------------------------------+
+| Chat (foreground, instant)                               |
+| create_chat -> send_message for instant triage           |
++----------------------------------------------------------+
+| Results                                                  |
+| Investigation completes -> root cause + recommendations  |
++----------------------------------------------------------+
 ```
 
-```
-┌─────────────────────────────────────────────────┐
-│  AI Agent / IDE                                  │
-│  (Kiro, Zed, JetBrains, Claude Code, Cursor)   │
-├──────────┬──────────────────────────────────────┤
-│ ACPClient│  MCP Client (built into IDE)         │
-│ (SDK)    │                                       │
-├──────────┴──────────────────────────────────────┤
-│  aws-devops-agent CLI (auto-detect / mcp / acp) │
-├─────────────────────────────────────────────────┤
-│  acp_server.py          │  mcp_server.py        │
-│  (JSON-RPC/stdio)       │  (FastMCP/stdio)      │
-├─────────────────────────┴───────────────────────┤
-│  core/  (shared boto3 clients, streaming, utils) │
-├─────────────────────────────────────────────────┤
-│  AWS DevOps Agent APIs                           │
-│  (Control Plane + Data Plane)                    │
-└─────────────────────────────────────────────────┘
+```text
++----------------------------------------------------------+
+| AI Agent / IDE (Kiro, Zed, JetBrains, Claude, Cursor)    |
++----------------------------------------------------------+
+| ACPClient (SDK) | MCP Client (built into IDE)            |
++----------------------------------------------------------+
+| aws-devops-agent CLI (auto-detect / mcp / acp)           |
++----------------------------------------------------------+
+| acp_server.py (JSON-RPC/stdio) | mcp_server.py (FastMCP) |
++----------------------------------------------------------+
+| core/ (shared boto3 clients, streaming, utils)           |
++----------------------------------------------------------+
+| AWS DevOps Agent APIs (Control Plane + Data Plane)       |
++----------------------------------------------------------+
 ```
 
 ## Environment Variables
