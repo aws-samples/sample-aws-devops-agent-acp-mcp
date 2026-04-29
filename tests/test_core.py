@@ -72,6 +72,14 @@ class TestCallApi:
         assert result["error"] == "NotFound"
         assert result["message"] == "not found"
 
+    def test_client_error_with_missing_error_fields(self):
+        from botocore.exceptions import ClientError
+        error_resp = {}
+        mock_fn = MagicMock(side_effect=ClientError(error_resp, "GetItem"))
+        result = json.loads(call_api(mock_fn))
+        assert result["error"] == "ClientError"
+        assert "GetItem" in result["message"]
+
     def test_generic_exception(self):
         mock_fn = MagicMock(side_effect=ValueError("bad"))
         result = json.loads(call_api(mock_fn))

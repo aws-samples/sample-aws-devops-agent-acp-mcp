@@ -38,8 +38,9 @@ def call_api(fn: Callable, **kwargs: Any) -> str:
         resp.pop("ResponseMetadata", None)
         return json.dumps(resp, default=serialize, indent=2)
     except ClientError as e:
-        code = e.response["Error"]["Code"]
-        msg = e.response["Error"]["Message"]
+        error_data = e.response.get("Error", {}) if isinstance(e.response, dict) else {}
+        code = error_data.get("Code", "ClientError")
+        msg = error_data.get("Message", str(e))
         return json.dumps({"error": code, "message": msg})
     except Exception as e:
         logger.exception("Unexpected error in API call")
