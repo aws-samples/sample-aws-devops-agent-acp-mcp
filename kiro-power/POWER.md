@@ -83,7 +83,7 @@ Start with chat for instant answers. Escalate to investigation only when the pro
    create_investigation(title="<incident>")          ← escalate to deep research (5-8 min)
    Poll get_task + list_journal_records → stream progress
    create_mitigation_plan(task_id) → generate mitigation plans (2-5 min)
-   list_recommendations() → get_recommendation() → generate remediation code
+   list_executions(task_id) → list_journal_records(execution_id, record_type="mitigation_summary_md")
 ```
 
 ---
@@ -226,8 +226,8 @@ You:
 5. If deeper root cause needed:
    create_investigation(title="ECS 503 errors on <service>")
    Poll get_task + list_journal_records → stream progress with emojis
-   On complete: list_recommendations → get_recommendation → show fix
-6. If recommendation has IaC: generate the fix code locally
+   On complete: create_mitigation_plan(task_id) → poll → list_journal_records(record_type="mitigation_summary_md")
+6. If mitigation has IaC: generate the fix code locally
 ```
 
 ### Cost Optimization

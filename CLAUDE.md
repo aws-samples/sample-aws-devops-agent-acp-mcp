@@ -81,11 +81,13 @@ Use when: investigation is COMPLETED and you need actionable fix plans.
 ```
 create_mitigation_plan(task_id) → sets status to PENDING_START
 poll get_task(taskId) every 30-45s until COMPLETED
-list_recommendations(task_id=taskId) → get_recommendation(recommendation_id)
+list_executions(task_id) → find newest execution_id
+list_journal_records(execution_id, record_type="mitigation_summary_md")
 ```
 
 **Note**: If `list_recommendations` returns empty after a completed investigation,
-call `create_mitigation_plan` first to generate them.
+use `create_mitigation_plan` to generate a mitigation plan. The plan appears as a
+`mitigation_summary_md` journal record, not via `list_recommendations`.
 
 ## ACP (streaming interaction)
 
