@@ -32,7 +32,7 @@ Or add to your project-level `.mcp.json` (or `~/.claude/.mcp.json` for user-leve
 **Prerequisites**: `pip install aws-devops-agent`, AWS credentials configured,
 an AgentSpace created (or set `DEVOPS_AGENT_AUTO_CREATE_SPACE=true`).
 
-## Available Tools (19)
+## Available Tools (20)
 
 | Category | Tools |
 |----------|-------|
@@ -41,7 +41,7 @@ an AgentSpace created (or set `DEVOPS_AGENT_AUTO_CREATE_SPACE=true`).
 | Investigation | `create_investigation`, `get_task`, `list_tasks`, `list_executions` |
 | Journal | `list_journal_records` |
 | Chat | `create_chat`, `list_chats`, `send_message` |
-| Recommendations | `list_recommendations`, `get_recommendation`, `update_recommendation` |
+| Recommendations | `list_recommendations`, `get_recommendation`, `update_recommendation`, `create_mitigation_plan` |
 | Evaluation | `list_goals`, `start_evaluation` |
 
 ## Choosing chat vs investigation
@@ -73,6 +73,19 @@ list_recommendations() for findings
 
 **Always stream progress to the user** — don't silently poll. Summarize after
 every poll: what phase, what's new, what's next.
+
+### Mitigation (post-investigation, 2-5 min)
+
+Use when: investigation is COMPLETED and you need actionable fix plans.
+
+```
+create_mitigation_plan(task_id) → sets status to PENDING_START
+poll get_task(taskId) every 30-45s until COMPLETED
+list_recommendations(task_id=taskId) → get_recommendation(recommendation_id)
+```
+
+**Note**: If `list_recommendations` returns empty after a completed investigation,
+call `create_mitigation_plan` first to generate them.
 
 ## ACP (streaming interaction)
 

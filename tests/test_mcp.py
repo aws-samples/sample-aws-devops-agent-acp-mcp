@@ -12,10 +12,10 @@ pytestmark = pytest.mark.skipif(
 
 
 class TestMCPToolCount:
-    def test_has_19_tools(self):
+    def test_has_20_tools(self):
         from aws_devops_agent.mcp_server import mcp
         tools = mcp._tool_manager._tools
-        assert len(tools) == 19, f"Expected 19 tools, got {len(tools)}: {list(tools.keys())}"
+        assert len(tools) == 20, f"Expected 20 tools, got {len(tools)}: {list(tools.keys())}"
 
     def test_expected_tool_names(self):
         from aws_devops_agent.mcp_server import mcp
@@ -27,9 +27,8 @@ class TestMCPToolCount:
             "create_investigation", "get_task", "list_tasks",
             "list_journal_records", "list_executions",
             "list_recommendations", "get_recommendation", "update_recommendation",
+            "create_mitigation_plan",
             "list_goals", "start_evaluation",
             "create_chat", "list_chats", "send_message",
         }
         assert tools == expected
-
-

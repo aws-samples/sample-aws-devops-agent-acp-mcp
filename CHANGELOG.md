@@ -2,6 +2,17 @@
 
 All notable changes are documented here. Format based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [1.1.0] - 2026-05-14
+
+### Added
+
+- **`create_mitigation_plan` MCP tool** — Generates mitigation plans for completed investigations by setting task status to `PENDING_START`, activating the Mitigation Agent to produce actionable recommendations.
+- **Mitigation Workflow documentation** in WORKFLOWS.md, SKILL.md, POWER.md, CLAUDE.md, and README.md.
+
+### Changed
+
+- MCP tool count: 19 → 20
+
 ## [1.0.0] - 2026-03-31
 
 ### Added

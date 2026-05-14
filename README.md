@@ -200,7 +200,7 @@ with ACPClient(region="us-west-2", verbose=True) as client:
 - Thread-safe, supports cancellation
 - TOCTOU-safe subprocess shutdown
 
-## MCP Tools (19 tools)
+## MCP Tools (20 tools)
 
 When running in MCP mode, the following tools are available:
 
@@ -211,7 +211,7 @@ When running in MCP mode, the following tools are available:
 | **Investigation** | `create_investigation`, `get_task`, `list_tasks`, `list_executions` |
 | **Journal** | `list_journal_records` |
 | **Chat** | `create_chat`, `list_chats`, `send_message` |
-| **Recommendations** | `list_recommendations`, `get_recommendation`, `update_recommendation` |
+| **Recommendations** | `list_recommendations`, `get_recommendation`, `update_recommendation`, `create_mitigation_plan` |
 | **Evaluation** | `list_goals`, `start_evaluation` |
 
 ## Workflow Patterns
