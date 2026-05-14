@@ -207,7 +207,12 @@ create_mitigation_plan(task_id="<TASK_ID>")
 ```
 
 This sets the task to `PENDING_START`, activating the Mitigation Agent. Poll `get_task`
-until `COMPLETED` again, then call `list_recommendations`.
+until `COMPLETED` again, then retrieve the mitigation plan:
+
+```
+list_executions(task_id="<TASK_ID>")  → find newest execution_id
+list_journal_records(execution_id="<EXECUTION_ID>", record_type="mitigation_summary_md")
+```
 
 ### Step 6: Generate remediation code
 
