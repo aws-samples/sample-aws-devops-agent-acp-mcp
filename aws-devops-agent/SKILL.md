@@ -200,7 +200,14 @@ list_recommendations(task_id="<TASK_ID>")
 get_recommendation(recommendation_id="<RECOMMENDATION_ID>")
 ```
 
-If none exist, create a new investigation: `create_investigation(title="Generate mitigations for task <taskId>", priority="LOW")`.
+If no recommendations exist, trigger mitigation plan generation:
+
+```
+create_mitigation_plan(task_id="<TASK_ID>")
+```
+
+This sets the task to `PENDING_START`, activating the Mitigation Agent. Poll `get_task`
+until `COMPLETED` again, then call `list_recommendations`.
 
 ### Step 6: Generate remediation code
 

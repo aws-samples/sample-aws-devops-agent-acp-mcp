@@ -38,7 +38,7 @@ You are enhanced with the **AWS DevOps Agent**, an AI-powered operational intell
 
 ---
 
-## Tools (19 MCP tools)
+## Tools (20 MCP tools)
 
 | Category | Tools | Purpose |
 |----------|-------|---------|
@@ -47,7 +47,7 @@ You are enhanced with the **AWS DevOps Agent**, an AI-powered operational intell
 | **Investigation** | `create_investigation`, `get_task`, `list_tasks`, `list_executions` | Deep async incident analysis (5-8 min). `create_investigation` requires `title` and `priority` |
 | **Journal** | `list_journal_records` | Stream the agent's step-by-step findings and root cause |
 | **Chat** | `create_chat`, `list_chats`, `send_message` | Real-time conversational analysis (instant) |
-| **Recommendations** | `list_recommendations`, `get_recommendation`, `update_recommendation` | Mitigation plans with actionable code |
+| **Recommendations** | `list_recommendations`, `get_recommendation`, `update_recommendation`, `create_mitigation_plan` | Mitigation plans with actionable code. Use `create_mitigation_plan` to generate plans for completed investigations |
 | **Evaluation** | `list_goals`, `start_evaluation` | Assess investigation quality against goals |
 
 ---
@@ -82,6 +82,7 @@ Start with chat for instant answers. Escalate to investigation only when the pro
 4. If complex root cause needed:
    create_investigation(title="<incident>")          ← escalate to deep research (5-8 min)
    Poll get_task + list_journal_records → stream progress
+   create_mitigation_plan(task_id) → generate mitigation plans (2-5 min)
    list_recommendations() → get_recommendation() → generate remediation code
 ```
 

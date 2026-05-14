@@ -434,6 +434,53 @@ def update_recommendation(
         kwargs["additionalContext"] = additional_context
     return call_api(get_dp().update_recommendation, **kwargs)
 
+
+@mcp.tool()
+def create_mitigation_plan(
+    task_id: str,
+    agent_space_id: Optional[str] = None,
+) -> str:
+    """Generate a mitigation plan for a completed investigation.
+
+    Sets the task status to PENDING_START, which activates the Mitigation Agent
+    to analyze findings and generate actionable recommendations.
+
+    Prerequisites: The task must be in COMPLETED status (investigation finished).
+    After calling: Poll get_task every 30-45s until status returns to COMPLETED,
+    then call list_recommendations(task_id) to retrieve the generated mitigation plans.
+
+    Full workflow:
+      1. create_investigation → get_task (poll) → COMPLETED
+      2. create_mitigation_plan(task_id) → status becomes PENDING_START
+      3. get_task (poll) → IN_PROGRESS → COMPLETED
+      4. list_recommendations(task_id) → get_recommendation(id)
+
+    Args:
+        task_id: The taskId of a COMPLETED investigation.
+        agent_space_id: The AgentSpace ID. Optional if DEVOPS_AGENT_SPACE_ID is set.
+    """
+    space_id = resolve_agent_space(agent_space_id)
+    # Validate task is in COMPLETED status
+    task = json.loads(call_api(
+        get_dp().get_backlog_task, agentSpaceId=space_id, taskId=task_id
+    ))
+    if "error" in task:
+        return json.dumps(task)
+    task_status = task.get("task", {}).get("status", "")
+    if task_status != "COMPLETED":
+        return json.dumps({
+            "error": "ValidationError",
+            "message": f"Task {task_id} is {task_status}, not COMPLETED. "
+            "Mitigation can only be triggered on completed investigations.",
+        })
+    return call_api(
+        get_dp().update_backlog_task,
+        agentSpaceId=space_id,
+        taskId=task_id,
+        taskStatus="PENDING_START",
+    )
+
+
 # ===== Data Plane: Goals & Evaluation ========================================
 
 

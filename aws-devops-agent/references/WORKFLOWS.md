@@ -19,6 +19,27 @@ Quick reference for choosing the right workflow.
 - Use descriptive titles: "ECS 503 after deploy" > "debug ECS"
 - Stream journal findings to the user — don't silently poll
 
+## Mitigation Workflow (Post-Investigation)
+
+**When to use**: After an investigation completes, to generate actionable fix plans
+
+**Duration**: 2-5 minutes (async)
+
+**Steps**:
+1. Ensure investigation is `COMPLETED` (via `get_task`)
+2. `create_mitigation_plan(task_id)` → sets status to `PENDING_START`
+3. Poll `get_task(task_id)` every 30-45s until `COMPLETED` again
+4. `list_recommendations(task_id=task_id)` → `get_recommendation(id)`
+5. Generate remediation code from the recommendation specification
+
+**What happens**: The Mitigation Agent analyzes the investigation's root cause findings
+and generates structured recommendations with actionable specifications (IaC changes,
+CLI commands, config fixes).
+
+**Note**: Recommendations may not exist after an investigation completes unless
+mitigation is explicitly triggered. If `list_recommendations` returns empty after
+a completed investigation, call `create_mitigation_plan` first.
+
 ## Knowledge Discovery (Instant)
 
 **When to use**: Exploring capabilities, finding configured services, listing goals
