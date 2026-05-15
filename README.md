@@ -11,7 +11,7 @@ A sample implementation of an **ACP client**, **ACP server**, and **MCP server**
 
 **Version:** 1.0.0 | **License:** MIT-0 | **Status:** Sample / Reference Implementation
 
-> 💡 **What's included:** A sample ACP server (`acp_server.py`), a streaming ACP client SDK (`acp_client.py`), and an MCP server with 19 tools (`mcp_server.py`). Use these as starting points for building your own integrations with the AWS DevOps Agent APIs.
+> 💡 **What's included:** A sample ACP server (`acp_server.py`), a streaming ACP client SDK (`acp_client.py`), and an MCP server with 22 tools (`mcp_server.py`). Use these as starting points for building your own integrations with the AWS DevOps Agent APIs.
 
 > ⚠️ **Disclaimer:** This software is provided as-is for development and evaluation purposes. Users should thoroughly test and validate it in their own environments before deploying to production. Review IAM permissions, network configuration, and security controls to ensure they meet your organization's requirements.
 
@@ -24,7 +24,7 @@ A sample implementation of an **ACP client**, **ACP server**, and **MCP server**
 - [Quick Start](#quick-start)
 - [CLI Modes](#cli-modes)
 - [ACP Client SDK](#acp-client-sdk)
-- [MCP Tools (19 tools)](#mcp-tools-19-tools)
+- [MCP Tools (22 tools)](#mcp-tools-22-tools)
 - [Workflow Patterns](#workflow-patterns)
 - [Environment Variables](#environment-variables)
 - [Supported Regions](#supported-regions)
@@ -118,7 +118,7 @@ with ACPClient() as client:
 
 The SDK auto-discovers the server binary and finds your AgentSpace. Zero config.
 
-For **MCP tools** instead (19 tools in Powers panel, requires Python 3.10+), see the MCP path in [KIRO_QUICKSTART.md](kiro-power/KIRO_QUICKSTART.md#path-b-mcp-setup-fallback--7-steps).
+For **MCP tools** instead (22 tools in Powers panel, requires Python 3.10+), see the MCP path in [KIRO_QUICKSTART.md](kiro-power/KIRO_QUICKSTART.md#path-b-mcp-setup-fallback--7-steps).
 
 #### Zed / JetBrains (Native ACP)
 
@@ -200,12 +200,13 @@ with ACPClient(region="us-west-2", verbose=True) as client:
 - Thread-safe, supports cancellation
 - TOCTOU-safe subprocess shutdown
 
-## MCP Tools (20 tools)
+## MCP Tools (22 tools)
 
 When running in MCP mode, the following tools are available:
 
 | Category | Tools |
 |----------|-------|
+| **Convenience** | **`chat`**, **`investigate`** ← start here |
 | **Discovery** | `list_services`, `get_service` |
 | **AgentSpace** | `list_agent_spaces`, `get_agent_space`, `create_agent_space`, `list_associations` |
 | **Investigation** | `create_investigation`, `get_task`, `list_tasks`, `list_executions` |
@@ -216,27 +217,40 @@ When running in MCP mode, the following tools are available:
 
 ## Workflow Patterns
 
-### Chat (fast, seconds)
+### Quick question → `chat` (one call, instant)
 
-For cost optimization, architecture review, topology, knowledge discovery, follow-ups:
-
-```
-create_chat()
-↓ send_message("Analyze cost trends for my ECS services")
-↓ instant response
-↓ send_message("follow-up question") — full context retained
-```
-
-### Investigation (deep, 5-8 minutes)
-
-For alarms, outages, error spikes, performance issues:
+**This is the default for most queries.** Cost, architecture, topology, runbooks, diagnostics:
 
 ```
-create_investigation(title, priority="CRITICAL")
-↓ poll get_task() every 30-45s
-↓ stream list_journal_records() for progress
-↓ list_recommendations() when complete
-↓ generate remediation code
+chat(message="Analyze cost trends for my ECS services")
+→ { executionId: "...", answer: "..." }
+
+# Follow up in the same session:
+send_message(execution_id="...", content="Break down by service")
+```
+
+### Incident → `investigate` (one call, then poll)
+
+For alarms, outages, error spikes, latency, or when `chat` suggests deeper analysis:
+
+```
+investigate(title="ECS 503 errors on checkout-service", priority="HIGH")
+→ { taskId: "...", executionId: "...", next_steps: "Poll get_task..." }
+
+# Then poll:
+get_task(task_id) every 30-45s until COMPLETED
+list_journal_records(execution_id) for streamed findings
+list_recommendations(task_id) for mitigations
+```
+
+### Advanced: multi-turn chat (lower-level)
+
+For conversations needing multiple back-and-forth messages:
+
+```
+create_chat(user_id="myuser") → executionId
+send_message(execution_id, content="first question") → response
+send_message(execution_id, content="follow-up") → context retained
 ```
 
 ### Discovery (fast, instant)
@@ -251,10 +265,8 @@ list_goals()              → evaluation goals (cost, security, reliability)
 
 ### Knowledge & Skills Discovery
 
-Use chat to discover what the agent knows:
 ```
-create_chat() → executionId
-send_message(executionId, "List all runbooks and their AWS services")
+chat(message="List all runbooks and their AWS services")
 ```
 
 ### Parallel (recommended for incidents)
@@ -268,7 +280,7 @@ Run both simultaneously — chat for instant triage, investigation for deep root
 | journal records stream progress in real-time             |
 +----------------------------------------------------------+
 | Chat (foreground, instant)                               |
-| create_chat -> send_message for instant triage           |
+| chat(message="Quick triage: ...") for instant triage     |
 +----------------------------------------------------------+
 | Results                                                  |
 | Investigation completes -> root cause + recommendations  |
@@ -321,7 +333,7 @@ Your AWS session token has expired. Refresh credentials (e.g., `aws sso login`, 
 Check your IDE's ACP/MCP configuration points to the correct binary. Run `which aws-devops-agent` to find the path.
 
 **Slow responses:**
-Investigations take 5-8 minutes by design (deep analysis). Use chat (`create_chat` + `send_message`) for quick answers.
+Investigations take 5-8 minutes by design (deep analysis). Use `chat(message="...")` for quick answers — one call, instant response.
 
 **"Cannot find aws-devops-agent-acp":**
 Install from source (see Quick Start) and ensure the binary is on your PATH.
